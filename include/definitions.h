@@ -10,7 +10,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <filesystem>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #define N_FILES_ROOT 5
 #define N_FOLDERS_ROOT 5

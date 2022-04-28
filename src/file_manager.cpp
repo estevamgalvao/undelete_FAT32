@@ -16,6 +16,7 @@ int FileManager::GenerateFolder() {
     system("mkdir root");
 
     snprintf(commands, 250, "cd root && ");
+    snprintf(commands, 250, "cd /mnt/d && ");
 
     /* Generating Folders */
     for (int i = 0; i < count_root_; i++)
@@ -26,6 +27,7 @@ int FileManager::GenerateFolder() {
         system(commands);
         folders_++;
         snprintf(commands, 250, "cd root && ");
+        // snprintf(commands, 250, "cd mnt/d && ");
 
         if (i == 1) {
             snprintf(aux_command, 50, "cd SD%d && ", i);
@@ -42,9 +44,11 @@ int FileManager::GenerateFolder() {
                 folders_++;
 
                 snprintf(commands, 250, "cd root && cd SD%d && ", i);
+                // snprintf(commands, 250, "cd mnt/d && cd SD%d && ", i);
             }
             
             snprintf(commands, 250, "cd root && ");
+            // snprintf(commands, 250, "cd mnt/d && ");
         }
     }
 

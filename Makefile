@@ -1,6 +1,6 @@
 
 CXX = g++
-CXXFLAGS = -W -Wall -std=c++11 -lm -g -I$(IDIR)
+CXXFLAGS = -W -Wall -std=c++17 -lm -g -I$(IDIR)
 
 SDIR = src
 IDIR = include
