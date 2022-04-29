@@ -17,6 +17,7 @@
 #define N_FILES_ROOT 5
 #define N_FOLDERS_ROOT 5
 #define N_FOLDERS_SD1 3
+#define MAX_FILES 65535
 
 
 #endif //DEFINITIONS_H

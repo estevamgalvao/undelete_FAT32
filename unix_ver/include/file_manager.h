@@ -15,13 +15,9 @@ class FileManager {
         virtual ~FileManager();
 
         int GenerateFolder();
+        int GenerateFiles512(int count_files);
         int GenerateFiles1KB(int count_files);
         int GenerateFilesSD1(int count_files);
-
-
-
-
-
 };
 
 

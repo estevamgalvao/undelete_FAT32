@@ -36,7 +36,7 @@ int FileManager::GenerateFolder() {
 
 int FileManager::GenerateFiles1KB(int count_files) {
     if (folders_ < 1) {
-        printf("Error! Folders weren't created.");
+        perror("Error! Folders weren't created.");
         return 1;
     }
 
@@ -56,9 +56,29 @@ int FileManager::GenerateFiles1KB(int count_files) {
     return 0;
 }
 
+int FileManager::GenerateFiles512(int count_files) {
+    if (folders_ < 1) {
+        perror("Error! Folders weren't created.");
+        return 1;
+    }
+
+    char commands[250];
+    chdir("/mnt/p");
+
+
+    int counter = 1;
+    while(counter <= count_files) {
+        snprintf(commands, 250, "openssl rand 512 > file%d.txt", counter);
+        system(commands);
+        counter++;
+    }
+    
+
+}
+
 int FileManager::GenerateFilesSD1(int count_files) {
     if (folders_ < 1) {
-        printf("Error! Folders weren't created.");
+        perror("Error! Folders weren't created.");
         return 1;
     }
 

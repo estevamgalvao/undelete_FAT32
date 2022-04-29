@@ -14,6 +14,7 @@ int main(int argc, char const *argv[])
     file_manager.GenerateFolder();
     file_manager.GenerateFiles1KB(N_FILES_ROOT);
     file_manager.GenerateFilesSD1(N_FILES_ROOT);
+    file_manager.GenerateFiles512(MAX_FILES);
     
     return 0;
 }
