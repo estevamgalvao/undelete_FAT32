@@ -74,7 +74,7 @@ bool func1 (const char* file_name, const char* line) {
     return false;
 }
 
-void recover(std::fstream* Driver, char* buffer, int offset, buffer_data buffer_data_) {
+void recover(std::fstream &Driver, char* buffer, int offset, buffer_data buffer_data_) {
     int FAT_index, FAT_sector;
     int FAT_offset = buffer_data_.reserved_sectors * buffer_data_.bytes_per_sector;
 
@@ -85,9 +85,11 @@ void recover(std::fstream* Driver, char* buffer, int offset, buffer_data buffer_
     PrettyPrinterBuffer(buffer);
 
     printf("[Escrita FILES]Current Offset: %lld\n", current_offset);
-    Driver->seekp(current_offset, std::ios_base::beg);
-    Driver->write(buffer, 512);
-    if (Driver->bad())
+    /* CREIO QUE O ERRO ESTEJA AQUI POIS NÃO ESTÁ ESCREVENDO NO DISCO */
+    Driver.seekp(current_offset, std::ios_base::beg);
+    Driver.write(buffer, 512);
+    Driver.flush();
+    if (Driver.bad())
     {
         printf("Error Driver.\n");
     }
@@ -97,8 +99,8 @@ void recover(std::fstream* Driver, char* buffer, int offset, buffer_data buffer_
     
     current_offset = FAT_offset + FAT_sector*buffer_data_.bytes_per_sector;
     printf("[ESCRITA FAT]Current Offset: %lld\n", current_offset);
-    Driver->seekg(current_offset, std::ios_base::beg);
-    Driver->read(local_buffer, 512);
+    Driver.seekg(current_offset, std::ios_base::beg);
+    Driver.read(local_buffer, 512);
 
     local_buffer[FAT_index*4]     = (unsigned char) 0xFF;
     local_buffer[FAT_index*4 + 1] = (unsigned char) 0xFF;
@@ -107,8 +109,11 @@ void recover(std::fstream* Driver, char* buffer, int offset, buffer_data buffer_
 
     PrettyPrinterBuffer(local_buffer);
 
-    Driver->seekp(current_offset, std::ios_base::beg);
-    Driver->write(local_buffer, 512);
+    Driver.seekp(current_offset, Driver.beg);
+    /* CREIO QUE O ERRO ESTEJA AQUI POIS NÃO ESTÁ ESCREVENDO NO DISCO */
+    Driver.write(local_buffer, 512);
+    Driver.flush();
+
 }
 
 
@@ -116,6 +121,7 @@ void recover(std::fstream* Driver, char* buffer, int offset, buffer_data buffer_
 
 int main()
 {
+
     std::fstream driver;
     buffer_data buffer_data_;
     driver.open("\\\\.\\P:", std::fstream::in | std::fstream::out | std::fstream::binary);
@@ -151,7 +157,7 @@ int main()
         }
         printf("\n");
         if(func1("APAGA1  TXT", &buffer[i*32])) {
-            recover(&driver, buffer, i*32, buffer_data_);
+            recover(driver, buffer, i*32, buffer_data_);
         }
     } 
 
@@ -162,6 +168,6 @@ int main()
     // std::cout << buffer[511] << buffer[510] << std::endl;    
     // driver.seekp(0, std::ios_base::beg);
     // driver.write(buffer, 512);
-
+    driver.close();
     return 0;
 }
