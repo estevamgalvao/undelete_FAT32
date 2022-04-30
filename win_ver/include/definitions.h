@@ -11,3 +11,4 @@
 #include <filesystem>
 
 #define PATH "/mnt/p"
+#define SECTOR_SIZE 512
