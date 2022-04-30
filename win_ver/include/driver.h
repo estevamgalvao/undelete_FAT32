@@ -24,7 +24,7 @@ class Driver {
         bool WriteSector(unsigned int offset);
         void PrintBootInfo();
         void PrintBuffer();
-        void EscrevereiQualquerBosta();
+        void EscrevereiQualquerCoisa();
 };
 
 #endif // DRIVER_H

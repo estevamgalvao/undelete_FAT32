@@ -51,6 +51,7 @@ bool Driver::ReadSector(unsigned int offset) {
     /* Reading file with the buffer's content */
     ReadFile(handle_file_, buffer_, SECTOR_SIZE, &bytes_read, NULL);
 
+    /* Checking if the correct amount of bytes were read - if not, error */
     if (bytes_read != SECTOR_SIZE) {
         return false;
     }
@@ -60,6 +61,27 @@ bool Driver::ReadSector(unsigned int offset) {
 }
 
 bool Driver::WriteSector(unsigned int offset) {
+
+    /* GETTING ACCESS FOR WRITING AT FILE - LOCK UNLOCK DEVICE*/
+    bool IO_permission_flag;
+    DWORD bytes_returned;
+
+    IO_permission_flag = DeviceIoControl(handle_file_,
+                            FSCTL_LOCK_VOLUME, //FSCTL_DISMOUNT_VOLUME antes p forçar
+                            NULL,
+                            0,
+                            NULL,
+                            0,
+                            &bytes_returned,
+                            NULL);
+
+    if (!IO_permission_flag) {
+        perror("UNLOCK failed.\n");
+    }
+    else {
+        perror("UNLOCK succeeded.\n");
+    }
+
     /* Amount of bytes written by WriteFile() */
     DWORD bytes_written;
     /* Jumping the file pointer to the offset informed */
@@ -67,12 +89,30 @@ bool Driver::WriteSector(unsigned int offset) {
     /* Wrinting file with the buffer's content */
     ReadFile(handle_file_, buffer_, SECTOR_SIZE, &bytes_written, NULL);
 
+    IO_permission_flag = DeviceIoControl(handle_file_,
+                        FSCTL_UNLOCK_VOLUME,
+                        NULL,
+                        0,
+                        NULL,
+                        0,
+                        &bytes_returned,
+                        NULL);
+
+    if (!IO_permission_flag) {
+        perror("UNLOCK failed.\n");
+    }
+    else {
+        perror("UNLOCK succeeded.\n");
+    }
+
+    /* Checking if the correct amount of bytes were written - if not, error */
     if (bytes_written != SECTOR_SIZE) {
         return false;
     }
     else {
         return true;
     }
+
 }
 
 
@@ -98,7 +138,7 @@ void Driver::PrintBuffer() {
     }
 }
 
-void Driver::EscrevereiQualquerBosta() {
+void Driver::EscrevereiQualquerCoisa() {
 
     bool FLAG;
 
