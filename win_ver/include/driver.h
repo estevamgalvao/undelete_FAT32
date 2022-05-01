@@ -9,7 +9,8 @@ class Driver {
         unsigned int FAT_sectors_;
         unsigned int sectors_per_cluster_;
         unsigned int offset_files_;
-        unsigned int current_offset_;
+        unsigned int offset_FAT_;
+        unsigned int offset_current_;
 
         BYTE buffer_[512];
         WCHAR* file_path_;
@@ -22,8 +23,23 @@ class Driver {
 
         bool ReadSector(unsigned int offset);
         bool WriteSector(unsigned int offset);
+
+        bool DelFile(BYTE* buffer_line);
+        bool RestoreFile(const char* filename);
+
         void PrintBootInfo();
+        void PrintFileInfo(BYTE* buffer_line);
+
         void PrintBuffer();
+        void PrintSector(unsigned int offset);
+        
+        void IdentifyFileSector();
+
+        unsigned int GetOffsetFiles();
+        unsigned int GetOffsetFAT();
+        unsigned int GetOffsetCurrent();
+        BYTE* GetBuffer();
+
         void EscrevereiQualquerCoisa();
 };
 

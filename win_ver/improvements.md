@@ -1,0 +1,2 @@
+- Melhorar o fato de que algumas funções dependem de comportamentos ou medidas externas para funcionar corretamente. 
+    - Por exemplo: WriteSector() necessita que o programador deixe o Buffer do jeito que ele deseja antes de chamar a WriteSector(). Isso para funções que usam a WriteSector() começa a ficar difícil de rastrear algum erro. Ainda que pareça uma abordagem plausível, pois a função funcionaria como um flush, é o que eu penso, pelo menos.

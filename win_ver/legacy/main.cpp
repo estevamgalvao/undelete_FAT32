@@ -233,3 +233,80 @@ int main()
     driver.close();
     return 0;
 }
+
+
+void Driver::EscrevereiQualquerCoisa() {
+
+    bool FLAG;
+
+
+    DWORD bytes_returned;
+    FLAG = DeviceIoControl(handle_file_,
+                            FSCTL_LOCK_VOLUME, //FSCTL_DISMOUNT_VOLUME antes
+                            NULL,
+                            0,
+                            NULL,
+                            0,
+                            &bytes_returned,
+                            NULL);
+
+    if (!FLAG) {
+        perror("LOCK failed.");
+    }
+    else {
+        perror("LOCK succeeded.");
+    }
+
+    offset_current_ = offset_files_;
+    this->ReadSector(offset_current_);
+    SetFilePointer(handle_file_, offset_current_, NULL, FILE_BEGIN);
+    buffer_[11*32] = 0xaa;
+    // memset(buffer_, 1, 512);
+    DWORD bytes_written;
+    WriteFile(handle_file_, buffer_, SECTOR_SIZE, &bytes_written, NULL);
+
+    FLAG = DeviceIoControl(handle_file_,
+                        FSCTL_UNLOCK_VOLUME,
+                        NULL,
+                        0,
+                        NULL,
+                        0,
+                        &bytes_returned,
+                        NULL);
+
+    if (!FLAG) {
+        perror("UNLOCK failed.");
+    }
+    else {
+        perror("UNLOCK succeeded.");
+    }
+}
+
+
+
+
+bool Driver::RestoreFile(const char* filename) {
+
+    for (size_t i = 0; i < N_LINES; i++)
+    {   
+
+        if(!(memcmp(filename+1, &buffer_[i*32+1], 10))) {
+            printf("I've found it.\n");
+            for (size_t j = 1; j < 10; j++)
+            {
+                printf("F: %02x\nB: %02x\n", filename[j], buffer_[i*32 + j]);
+            }
+        }
+        printf("\n");
+    }
+
+    for (size_t j = 0; j < 11; j++)
+    {
+        printf("%02x ", (const char*) buffer_[11*32 + j]);
+    }
+
+
+    bool compare = memcmp(filename, &buffer_[11*32], 11);
+    printf("FLAG: %d", compare);
+    return true;
+}
