@@ -2,6 +2,8 @@
 #define DRIVER_H
 #include "definitions.h"
 
+
+/* Classe que define o Driver */
 class Driver {
     private:
         unsigned int bytes_per_sector_;
@@ -11,11 +13,20 @@ class Driver {
         unsigned int offset_files_;
         unsigned int offset_FAT_;
         unsigned int offset_current_;
+        unsigned int bytes_per_cluster_;
 
         BYTE buffer_[512];
         WCHAR* file_path_;
 
         HANDLE handle_file_;
+
+        /* FILE DATA SECTION */
+        char filename_[9];
+        char extension_[4];
+        char parent_paths_[3][64];
+        int starting_cluster_int_;
+        unsigned short starting_cluster_;
+        unsigned short starting_cluster_high_;
 
     public:
         Driver(WCHAR* path);
@@ -33,7 +44,14 @@ class Driver {
         void PrintBuffer();
         void PrintSector(unsigned int offset);
         
+        int ScanCluster(char* filename);
         void IdentifyFileSector();
+        void SetFileData(char *filepath);
+        void LookForFile(char *filepath);
+
+
+        void SetBufferAtFileSector();
+
 
         unsigned int GetOffsetFiles();
         unsigned int GetOffsetFAT();

@@ -48,12 +48,14 @@ Driver::Driver(WCHAR* path) {
     sectors_per_cluster_ = *((unsigned char*)  &buffer_[13]);
     offset_files_        = bytes_per_sector_ * (reserved_sectors_ + (FAT_sectors_ * 2));
     offset_FAT_          = reserved_sectors_ * bytes_per_sector_;
+    bytes_per_cluster_   = bytes_per_sector_ * sectors_per_cluster_;
     }
 }
 
 Driver::~Driver() {
     CloseHandle(handle_file_);
 }
+
 
 bool Driver::ReadSector(unsigned int offset) {
     /* Amount of bytes read by ReadFile() */
@@ -128,8 +130,8 @@ bool Driver::WriteSector(unsigned int offset) {
 }
 
 bool Driver::DelFile(BYTE* buffer_line) {
-    unsigned short starting_cluster         = *((unsigned short*)  &buffer_line[26]);
-    unsigned short starting_cluster_high    = *((unsigned short*)  &buffer_line[20]);
+    // unsigned short starting_cluster         = *((unsigned short*)  &buffer_line[26]);
+    // unsigned short starting_cluster_high    = *((unsigned short*)  &buffer_line[20]);
     // printf("[6] Starting Cluster: %d\n", starting_cluster); 
     // printf("[7] Starting Cluster High Part: %d\n", starting_cluster_high); 
 
@@ -174,14 +176,70 @@ bool Driver::RestoreFile(const char* filename) {
                 this->PrintBuffer();
 
                 this->WriteSector(offset_current_);
-
             }
         }
     }
-
     return true;
 }
 
+int Driver::ScanCluster(char* filename) {
+    // for (size_t i = 0; i < count; i++)
+    // {
+    //     /* code */
+    // }
+    return -1;
+}
+
+void Driver::LookForFile(char* filepath) {
+    int scan_cluster_ret;
+    int FAT_sector;
+
+    this->SetFileData(filepath);
+    offset_current_ = offset_files_;
+
+    starting_cluster_int_ = 12;
+
+    scan_cluster_ret = this->ScanCluster(filename_);
+    if (scan_cluster_ret == -1)
+    {
+        FAT_sector = starting_cluster_int_/FAT_ENTRIES_PER_SECTOR;
+        offset_current_ = offset_FAT_ + FAT_sector * bytes_per_sector_;
+        starting_cluster_int_ = starting_cluster_int_%FAT_ENTRIES_PER_SECTOR;
+
+        this->ReadSector(offset_current_);
+        this->PrintBuffer();
+        starting_cluster_int_ = buffer_[starting_cluster_int_*4];
+        std::cout << "Starting cluster: " << starting_cluster_int_ << std::endl;
+    }
+    
+}
+
+void Driver::SetFileData(char* filepath) {
+    std::filesystem::path path(filepath);
+
+    snprintf(filename_, 9, "%s", path.stem().string().c_str());
+    snprintf(extension_, 4, "%s", path.extension().string().substr(1,3).c_str());
+    
+    std::cout << filename_ << std::endl;
+    std::cout << extension_ << std::endl;
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        path = path.parent_path();
+        if (path.parent_path().has_parent_path()) {
+            memcpy(parent_paths_[i], path.stem().string().c_str(), 64);
+            // if (path.parent_path().string() == "\\") {
+            //     break;
+            // }
+        }
+    }
+
+    for (size_t i = 0; i < 3; i++)
+    {
+        std::cout << parent_paths_[i] << std::endl;
+        std::cout << (parent_paths_[i][0] == 0) << std::endl;
+    }
+}
 
 void Driver::PrintBootInfo() {
     printf("\n[-] BOOT SECTOR INFO\n");

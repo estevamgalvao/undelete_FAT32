@@ -20,14 +20,9 @@ int main(int argc, char const *argv[])
     {
         Driver FAT32(path);
         FAT32.PrintBootInfo();
-        FAT32.PrintSector(0);
-        FAT32.PrintSector(FAT32.GetOffsetFAT());
-        FAT32.PrintSector(FAT32.GetOffsetFiles());
         FAT32.PrintFileInfo(&FAT32.GetBuffer()[11 * 32]);
-        
-        FAT32.ReadSector(FAT32.GetOffsetFiles());
-        FAT32.RestoreFile("PILE1   TXT");
-       
+
+        FAT32.LookForFile("\\12345678.txt");
     }
     catch(const std::exception& e)
     {
