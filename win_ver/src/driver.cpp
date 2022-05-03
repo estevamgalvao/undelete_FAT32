@@ -198,24 +198,22 @@ int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = t
             std::cout << "BUFFER CHAR: " << buffer_[i*32] << std::endl;
             if(buffer_[i*32] == first_byte) {
                 if(!(memcmp(filename+1, &buffer_[i*32+1], 10))) {
-                    printf("Achei o mesmo arquivo.\n");
+                    printf("Achei o arquivo.\n");
                     file_data_.starting_cluster         = *((unsigned short*)  &buffer_[i*32 + 26]);
                     file_data_.starting_cluster_high    = *((unsigned short*)  &buffer_[i*32 + 20]);
-                    file_data_.starting_cluster_int = (unsigned int) file_data_.starting_cluster_high;
-                    file_data_.starting_cluster_int <<= 16;
-                    file_data_.starting_cluster_int |= (unsigned int) file_data_.starting_cluster;
+                    file_data_.starting_cluster_int     = (unsigned int) file_data_.starting_cluster_high;
+                    file_data_.starting_cluster_int     <<= 16;
+                    file_data_.starting_cluster_int     |= (unsigned int) file_data_.starting_cluster;
                     // buffer_[i*32] = 0x41;
                     // offset_current_ = offset_files_; // Como lidar com o fato de que ele pode não estar no primeiro setor
                     return 0;
                 }
             }
         }
-        printf("Proximo setor\n");
+        printf("Não encontrei em SETOR [%llu] -> Vou checkar em SETOR [%llu].\n", h, h+1);
         offset += 512;
         this->ReadSector(offset);
     }
-
-
     return -1;
 }
 
@@ -223,24 +221,43 @@ int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = t
 
 void Driver::LookForFile(char* filepath) {
     this->SetFileData(filepath);
+    unsigned int FAT_sector = 0;
     offset_current_ = offset_files_;
-
     this->PrintFileData();
     getchar();
 
-    bool scan_ret;
+    int scan_ret;
     for (int i = PATHS_SIZE - 1; i >= 0; i--)
     {
         if (!isblank(file_data_.parent_paths[i][0]) && file_data_.parent_paths[i][0] != 0 )
         {
             printf("Vou procurar: %s\n", file_data_.parent_paths[i]);
+
             scan_ret = this->ScanCluster(file_data_.parent_paths[i], offset_current_, false);
             if (scan_ret != -1)
             {
                 offset_current_ = offset_files_ + (bytes_per_cluster_ * (file_data_.starting_cluster_int - 2));
             }
-            
+            else {
+                printf("-- Couldn't find inside the first cluster. I'll check it at FAT.\n");
+                offset_current_ = offset_FAT_;
+                FAT_sector = file_data_.starting_cluster_int/FAT_ENTRIES_PER_SECTOR;
+                offset_current_ = offset_FAT_ + FAT_sector * bytes_per_sector_;
+
+                this->ReadSector(offset_current_);
+                this->PrintBuffer();
+                file_data_.starting_cluster_int %= FAT_ENTRIES_PER_SECTOR;
+                
+                file_data_.starting_cluster_int = ((unsigned int*)buffer_)[file_data_.starting_cluster_int];
+                file_data_.starting_cluster = (unsigned short) file_data_.starting_cluster_int;
+                file_data_.starting_cluster_high = (unsigned short) (file_data_.starting_cluster_int >> 16);
+                
+                offset_current_ = offset_files_ + (bytes_per_cluster_ * (file_data_.starting_cluster_int - 2));
+                // file_data_.starting_cluster_int = *((unsigned int*)(&buffer_[file_data_.starting_cluster_int*4]));
+                i++; // I still wanna look for the same filename
+            }
         }
+        this->PrintFileData();
     }
 }
 
@@ -296,6 +313,10 @@ void Driver::SetFileData(char* filepath) {
                 memcpy(file_data_.parent_paths[i], aux, 32);
         }
     }
+
+    file_data_.starting_cluster = 2;
+    file_data_.starting_cluster_high = 0;
+    file_data_.starting_cluster_int = 2;
 }
 
 void Driver::PrintBootInfo() {
@@ -318,9 +339,9 @@ void Driver::PrintFileData() {
     }
     printf("[5] Starting Cluster: %u\n", file_data_.starting_cluster); 
     printf("[6] Starting Cluster High Part: %u\n", file_data_.starting_cluster_high);          
-    file_data_.starting_cluster_int = (unsigned int) file_data_.starting_cluster_high;
-    file_data_.starting_cluster_int <<= 16;
-    file_data_.starting_cluster_int |= (unsigned int) file_data_.starting_cluster;
+    // file_data_.starting_cluster_int = (unsigned int) file_data_.starting_cluster_high;
+    // file_data_.starting_cluster_int <<= 16;
+    // file_data_.starting_cluster_int |= (unsigned int) file_data_.starting_cluster;
     printf("[7] Starting Cluster INT (FULL): %u\n", file_data_.starting_cluster_int);          
 }
 

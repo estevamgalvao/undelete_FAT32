@@ -24,7 +24,7 @@ int main(int argc, char const *argv[])
 
         // FAT32.SetFileData("\\pasta1\\pasta1_1\\file2.txt");
         // FAT32.ScanCluster("AILE1   TXT", FAT32.GetOffsetFiles(), false);
-        FAT32.LookForFile("\\novapa~1");
+        FAT32.LookForFile("\\SD1\\aile128.txt");
         // FAT32.LookForFile("\\12345678.txt");
     }
     catch(const std::exception& e)
