@@ -191,23 +191,30 @@ int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = t
     getchar();
     this->PrintBuffer();
 
-    for (size_t i = 0; i < N_LINES; i++)
+    for (size_t h = 0; h < sectors_per_cluster_; h++)
     {
-        // std::cout << "BUFFER CHAR: " << buffer_[i*32] << std::endl;
-        if(buffer_[i*32] == first_byte) {
-            if(!(memcmp(filename+1, &buffer_[i*32+1], 10))) {
-                printf("Achei o mesmo arquivo.\n");
-                file_data_.starting_cluster         = *((unsigned short*)  &buffer_[i*32 + 26]);
-                file_data_.starting_cluster_high    = *((unsigned short*)  &buffer_[i*32 + 20]);
-                file_data_.starting_cluster_int = (unsigned int) file_data_.starting_cluster_high;
-                file_data_.starting_cluster_int <<= 16;
-                file_data_.starting_cluster_int |= (unsigned int) file_data_.starting_cluster;
-                // buffer_[i*32] = 0x41;
-                // offset_current_ = offset_files_; // Como lidar com o fato de que ele pode não estar no primeiro setor
-                return 0;
+        for (size_t i = 0; i < N_LINES; i++)
+        {
+            std::cout << "BUFFER CHAR: " << buffer_[i*32] << std::endl;
+            if(buffer_[i*32] == first_byte) {
+                if(!(memcmp(filename+1, &buffer_[i*32+1], 10))) {
+                    printf("Achei o mesmo arquivo.\n");
+                    file_data_.starting_cluster         = *((unsigned short*)  &buffer_[i*32 + 26]);
+                    file_data_.starting_cluster_high    = *((unsigned short*)  &buffer_[i*32 + 20]);
+                    file_data_.starting_cluster_int = (unsigned int) file_data_.starting_cluster_high;
+                    file_data_.starting_cluster_int <<= 16;
+                    file_data_.starting_cluster_int |= (unsigned int) file_data_.starting_cluster;
+                    // buffer_[i*32] = 0x41;
+                    // offset_current_ = offset_files_; // Como lidar com o fato de que ele pode não estar no primeiro setor
+                    return 0;
+                }
             }
         }
+        printf("Proximo setor\n");
+        offset += 512;
+        this->ReadSector(offset);
     }
+
 
     return -1;
 }
@@ -220,13 +227,19 @@ void Driver::LookForFile(char* filepath) {
 
     this->PrintFileData();
     getchar();
+
+    bool scan_ret;
     for (int i = PATHS_SIZE - 1; i >= 0; i--)
     {
         if (!isblank(file_data_.parent_paths[i][0]) && file_data_.parent_paths[i][0] != 0 )
         {
             printf("Vou procurar: %s\n", file_data_.parent_paths[i]);
-            this->ScanCluster(file_data_.parent_paths[i], offset_current_, false);
-            offset_current_ = offset_files_ + (bytes_per_cluster_ * (file_data_.starting_cluster_int - 2));
+            scan_ret = this->ScanCluster(file_data_.parent_paths[i], offset_current_, false);
+            if (scan_ret != -1)
+            {
+                offset_current_ = offset_files_ + (bytes_per_cluster_ * (file_data_.starting_cluster_int - 2));
+            }
+            
         }
     }
 }
