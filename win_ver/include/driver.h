@@ -21,12 +21,14 @@ class Driver {
         HANDLE handle_file_;
 
         /* FILE DATA SECTION */
-        char filename_[9];
-        char extension_[4];
-        char parent_paths_[3][64];
-        int starting_cluster_int_;
-        unsigned short starting_cluster_;
-        unsigned short starting_cluster_high_;
+        struct file_data {
+            char filename[9];
+            char extension[4];
+            char parent_paths[PATHS_SIZE][32];
+            unsigned int starting_cluster_int;
+            unsigned short starting_cluster;
+            unsigned short starting_cluster_high;
+        } file_data_;
 
     public:
         Driver(WCHAR* path);
@@ -38,19 +40,25 @@ class Driver {
         bool DelFile(BYTE* buffer_line);
         bool RestoreFile(const char* filename);
 
+
+        int ScanCluster(char* filename, unsigned int offset, bool is_deleted);
+        void IdentifyFileSector();
+        void SetFileData(char *filepath);
+        void LookForFolder(char *filepath);
+        void LookForFile(char *filepath);
+        
+
+
+        void SetBufferAtFileSector();
+
+
         void PrintBootInfo();
+        void PrintFileData();
         void PrintFileInfo(BYTE* buffer_line);
 
         void PrintBuffer();
         void PrintSector(unsigned int offset);
         
-        int ScanCluster(char* filename);
-        void IdentifyFileSector();
-        void SetFileData(char *filepath);
-        void LookForFile(char *filepath);
-
-
-        void SetBufferAtFileSector();
 
 
         unsigned int GetOffsetFiles();

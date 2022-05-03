@@ -310,3 +310,27 @@ bool Driver::RestoreFile(const char* filename) {
     printf("FLAG: %d", compare);
     return true;
 }
+
+
+void Driver::LookForFile(char* filepath) {
+    int scan_cluster_ret;
+    int FAT_sector;
+
+    this->SetFileData(filepath);
+    offset_current_ = offset_files_;
+
+    starting_cluster_int_ = 12;
+
+    scan_cluster_ret = this->ScanCluster(filename_);
+    if (scan_cluster_ret == -1)
+    {
+        FAT_sector = starting_cluster_int_/FAT_ENTRIES_PER_SECTOR;
+        offset_current_ = offset_FAT_ + FAT_sector * bytes_per_sector_;
+        starting_cluster_int_ = starting_cluster_int_%FAT_ENTRIES_PER_SECTOR;
+
+        this->ReadSector(offset_current_);
+        this->PrintBuffer();
+        starting_cluster_int_ = buffer_[starting_cluster_int_*4];
+        std::cout << "Starting cluster: " << starting_cluster_int_ << std::endl;
+    }
+}

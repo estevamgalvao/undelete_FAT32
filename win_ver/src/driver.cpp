@@ -149,7 +149,6 @@ bool Driver::DelFile(BYTE* buffer_line) {
 }
 
 bool Driver::RestoreFile(const char* filename) {
-
     for (size_t i = 0; i < N_LINES; i++)
     {   
         if(buffer_[i*32] == 0xe5) {
@@ -182,62 +181,107 @@ bool Driver::RestoreFile(const char* filename) {
     return true;
 }
 
-int Driver::ScanCluster(char* filename) {
-    // for (size_t i = 0; i < count; i++)
-    // {
-    //     /* code */
-    // }
+int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = true) {
+    this->ReadSector(offset);
+    int first_byte = filename[0];
+    if (is_deleted) {
+        first_byte = 0xe5;
+    }
+    std::cout << filename << std::endl;
+    getchar();
+    this->PrintBuffer();
+
+    for (size_t i = 0; i < N_LINES; i++)
+    {
+        // std::cout << "BUFFER CHAR: " << buffer_[i*32] << std::endl;
+        if(buffer_[i*32] == first_byte) {
+            if(!(memcmp(filename+1, &buffer_[i*32+1], 10))) {
+                printf("Achei o mesmo arquivo.\n");
+                file_data_.starting_cluster         = *((unsigned short*)  &buffer_[i*32 + 26]);
+                file_data_.starting_cluster_high    = *((unsigned short*)  &buffer_[i*32 + 20]);
+                file_data_.starting_cluster_int = (unsigned int) file_data_.starting_cluster_high;
+                file_data_.starting_cluster_int <<= 16;
+                file_data_.starting_cluster_int |= (unsigned int) file_data_.starting_cluster;
+                // buffer_[i*32] = 0x41;
+                // offset_current_ = offset_files_; // Como lidar com o fato de que ele pode não estar no primeiro setor
+                return 0;
+            }
+        }
+    }
+
     return -1;
 }
 
-void Driver::LookForFile(char* filepath) {
-    int scan_cluster_ret;
-    int FAT_sector;
 
+
+void Driver::LookForFile(char* filepath) {
     this->SetFileData(filepath);
     offset_current_ = offset_files_;
 
-    starting_cluster_int_ = 12;
-
-    scan_cluster_ret = this->ScanCluster(filename_);
-    if (scan_cluster_ret == -1)
+    this->PrintFileData();
+    getchar();
+    for (int i = PATHS_SIZE - 1; i >= 0; i--)
     {
-        FAT_sector = starting_cluster_int_/FAT_ENTRIES_PER_SECTOR;
-        offset_current_ = offset_FAT_ + FAT_sector * bytes_per_sector_;
-        starting_cluster_int_ = starting_cluster_int_%FAT_ENTRIES_PER_SECTOR;
-
-        this->ReadSector(offset_current_);
-        this->PrintBuffer();
-        starting_cluster_int_ = buffer_[starting_cluster_int_*4];
-        std::cout << "Starting cluster: " << starting_cluster_int_ << std::endl;
+        if (!isblank(file_data_.parent_paths[i][0]) && file_data_.parent_paths[i][0] != 0 )
+        {
+            printf("Vou procurar: %s\n", file_data_.parent_paths[i]);
+            this->ScanCluster(file_data_.parent_paths[i], offset_current_, false);
+            offset_current_ = offset_files_ + (bytes_per_cluster_ * (file_data_.starting_cluster_int - 2));
+        }
     }
-    
 }
 
 void Driver::SetFileData(char* filepath) {
     std::filesystem::path path(filepath);
 
-    snprintf(filename_, 9, "%s", path.stem().string().c_str());
-    snprintf(extension_, 4, "%s", path.extension().string().substr(1,3).c_str());
-    
-    std::cout << filename_ << std::endl;
-    std::cout << extension_ << std::endl;
-
-    for (size_t i = 0; i < 3; i++)
+    snprintf(file_data_.filename, 9, "%-8s", path.stem().string().c_str());
+    if (path.has_extension())
     {
-        path = path.parent_path();
-        if (path.parent_path().has_parent_path()) {
-            memcpy(parent_paths_[i], path.stem().string().c_str(), 64);
-            // if (path.parent_path().string() == "\\") {
-            //     break;
-            // }
-        }
+        snprintf(file_data_.extension, 4, "%-3s", path.extension().string().substr(1,3).c_str());
+    }
+    else {
+        snprintf(file_data_.extension, 4, "%-3s", "");
+    }
+    
+    // std::cout << file_data_.filename << std::endl;
+    // std::cout << file_data_.extension << std::endl;
+
+
+    char aux[32];
+    aux[0] = 0; // Strcat could point out an error, with this I show the string is empty
+    strcat_s(aux, 32, file_data_.filename);
+    strcat_s(aux, 32, file_data_.extension);
+    // std::cout << aux << std::endl;
+
+    for (size_t i = 0; i < 8; i++)
+    {
+        file_data_.filename[i] = (char) toupper(file_data_.filename[i]);
     }
 
     for (size_t i = 0; i < 3; i++)
     {
-        std::cout << parent_paths_[i] << std::endl;
-        std::cout << (parent_paths_[i][0] == 0) << std::endl;
+        file_data_.extension[i] = (char) toupper(file_data_.extension[i]);
+    }
+
+    for (size_t i = 0; i < 32; i++)
+    {
+        aux[i] = (char) toupper(aux[i]);
+    }
+    
+    memcpy(file_data_.parent_paths[0], aux, 32);
+    // std::cout << (memcmp(parent_paths_[0],"TESTE3  ", 8)) << std::endl;
+    // std::cout << file_data_.parent_paths[0] << std::endl;
+    for (size_t i = 1; i < PATHS_SIZE; i++)
+    {
+        path = path.parent_path();
+        if (path.parent_path().has_parent_path()) {
+                snprintf(aux, 12, "%-11s", path.stem().string().c_str());
+                for (size_t j = 0; j < 32; j++)
+                    {
+                        aux[j] = (char) toupper(aux[j]);
+                    }
+                memcpy(file_data_.parent_paths[i], aux, 32);
+        }
     }
 }
 
@@ -249,6 +293,22 @@ void Driver::PrintBootInfo() {
     printf("[4] Sectors per cluster: %u\n", sectors_per_cluster_); 
     printf("[5] FAT offset: %u\n", offset_FAT_);
     printf("[6] Files offset: %u\n", offset_files_);
+}
+
+void Driver::PrintFileData() {
+    printf("\n[-] FILEDATA STRUCT INFO\n");
+    printf("[1] Filename: %s\n", file_data_.filename);
+    printf("[2] Extension: %s\n", file_data_.extension);
+    for (int i = 0; i < PATHS_SIZE; i++)
+    {
+        printf("[3.%d] Paths-%d: %s\n", i, i, file_data_.parent_paths[i]);
+    }
+    printf("[5] Starting Cluster: %u\n", file_data_.starting_cluster); 
+    printf("[6] Starting Cluster High Part: %u\n", file_data_.starting_cluster_high);          
+    file_data_.starting_cluster_int = (unsigned int) file_data_.starting_cluster_high;
+    file_data_.starting_cluster_int <<= 16;
+    file_data_.starting_cluster_int |= (unsigned int) file_data_.starting_cluster;
+    printf("[7] Starting Cluster INT (FULL): %u\n", file_data_.starting_cluster_int);          
 }
 
 void Driver::PrintFileInfo(BYTE* buffer_line) {

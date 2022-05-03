@@ -15,3 +15,4 @@
 #define FAT_ENTRIES_PER_SECTOR 128
 #define LINE_SIZE 32
 #define N_LINES 16
+#define PATHS_SIZE 3
