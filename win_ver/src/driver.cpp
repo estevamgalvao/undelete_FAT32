@@ -7,8 +7,6 @@
  * github: estevamgalvao
  *
  */
-
-
 #include "driver.h"
 
 
@@ -56,7 +54,7 @@ Driver::~Driver() {
     CloseHandle(handle_file_);
 }
 
-
+/* Read 512 bytes at the given offset and load it on buffer_ */
 bool Driver::ReadSector(unsigned int offset) {
     /* Amount of bytes read by ReadFile() */
     DWORD bytes_read;
@@ -74,6 +72,7 @@ bool Driver::ReadSector(unsigned int offset) {
     }
 }
 
+/* Write 512 bytes from buffer_ at the given offset */
 bool Driver::WriteSector(unsigned int offset) {
 
     /* GETTING ACCESS FOR WRITING AT FILE - LOCK UNLOCK DEVICE*/
@@ -181,6 +180,7 @@ bool Driver::RestoreFile(const char* filename) {
     return true;
 }
 
+/* Scan a cluster, at a given offset, looking for a deleted or not deleted file by its name */
 int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = true) {
     this->ReadSector(offset);
     int first_byte = filename[0];
@@ -218,9 +218,7 @@ int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = t
 }
 
 
-
-
-
+/* Look for a file by name */
 void Driver::LookForFile(char* filepath) {
     this->SetFileData(filepath);
     unsigned int FAT_sector = 0;
@@ -401,7 +399,6 @@ unsigned int Driver::GetOffsetCurrent() {
 BYTE* Driver::GetBuffer() {
     return buffer_;
 }
-
 
 
 void Driver::IdentifyFileSector() {};

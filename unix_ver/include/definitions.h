@@ -13,11 +13,11 @@
 #include <filesystem>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <time.h>
 
-#define N_FILES_ROOT 5
+#define N_FILES_ROOT 1000
 #define N_FOLDERS_ROOT 5
 #define N_FOLDERS_SD1 3
-#define MAX_FILES 65535
-
+#define FREE_SPACE 94073000
 
 #endif //DEFINITIONS_H

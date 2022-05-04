@@ -18,6 +18,10 @@ class FileManager {
         int GenerateFiles512(int count_files);
         int GenerateFiles1KB(int count_files);
         int GenerateFilesSD1(int count_files);
+        int FillUpSD1_2(int free_space);
+        int DeleteFilesRand(int count_files);
+
+
 };
 
 

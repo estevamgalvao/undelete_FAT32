@@ -40,17 +40,13 @@ class Driver {
         bool DelFile(BYTE* buffer_line);
         bool RestoreFile(const char* filename);
 
-
         int ScanCluster(char* filename, unsigned int offset, bool is_deleted);
         void IdentifyFileSector();
         void SetFileData(char *filepath);
         void LookForFolder(char *filepath);
         void LookForFile(char *filepath);
-        
-
 
         void SetBufferAtFileSector();
-
 
         void PrintBootInfo();
         void PrintFileData();
@@ -59,8 +55,6 @@ class Driver {
         void PrintBuffer();
         void PrintSector(unsigned int offset);
         
-
-
         unsigned int GetOffsetFiles();
         unsigned int GetOffsetFAT();
         unsigned int GetOffsetCurrent();
