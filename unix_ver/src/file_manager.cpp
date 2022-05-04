@@ -187,3 +187,37 @@ int FileManager::DeleteFilesRand(int count_files) {
     }
 }
 
+int FileManager::SetUpFiles40KB(int count_files) {
+    if (folders_ < 1) {
+        perror("Error! Folders weren't created.");
+        return 1;
+    }
+
+    char commands[250];
+    chdir("/mnt/p/SD0");
+
+    int counter = 1;
+    while(counter <= count_files) {
+        snprintf(commands, 250, "openssl rand 40000 > file%d.txt", counter);
+        system(commands);
+        printf("[40KB] - SD0/file%d.txt created.\n", counter);
+        counter++;
+    }
+
+    snprintf(commands, 250, "rm file3.txt");
+    system(commands);
+    printf("[40KB] - SD0/file3.txt deleted.\n");
+
+    snprintf(commands, 250, "rm file5.txt");
+    system(commands);
+    printf("[40KB] - SD0/file5.txt deleted.\n");
+    
+    snprintf(commands, 250, "rm file7.txt");
+    system(commands);
+    printf("[40KB] - SD0/file7.txt deleted.\n");
+
+}
+
+void FileManager::GenerateFile5_txt() {
+
+}
