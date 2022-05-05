@@ -49,21 +49,16 @@ class Driver {
         bool ReadSector(unsigned int offset);
         bool WriteSector(unsigned int offset);
 
-        bool DelFile(BYTE* buffer_line);
-        void RestoreFile(unsigned int n_parts);
-
-        int ScanCluster(char* filename, unsigned int offset, bool is_file, bool is_deleted);
-        void IdentifyFileSector();
         void SetFileData(char *filepath);
+        int ScanCluster(char* filename, unsigned int offset, bool is_file, bool is_deleted);
         void LookForFolder(char *filepath);
         void LookForFile(char *filepath);
-
-
-        void RestoreFAT();
         void FindFileContent();
-        void SetBufferAtFileSector();
+        void RestoreFile(unsigned int n_parts);
+
 
         int ConvertChar(char first, char second);
+        void AppendSearchPair(unsigned int part, unsigned int cluster);
 
         void PrintBootInfo();
         void PrintFileData();
@@ -76,7 +71,6 @@ class Driver {
         unsigned int GetOffsetFAT();
         unsigned int GetOffsetCurrent();
         file_data GetFileData();
-        void AppendSearchPair(unsigned int part, unsigned int cluster);
         BYTE* GetBuffer();
 };
 

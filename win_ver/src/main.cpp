@@ -43,15 +43,11 @@ int main()
                 FAT32.LookForFile("\\SD0\\moai.txt");
                 FAT32.PrintFileData();
                 FAT32.AppendSearchPair(0, FAT32.GetFileData().starting_cluster_int);
-                // std::cout << ((memcmp("PARTE", "PARTE", 5))) << std::endl;
                 getchar();
 
                 FAT32.FindFileContent();
                 FAT32.PrintSearchArray();
-                getchar();
                 FAT32.RestoreFile(40);
-
-                // FAT32.LookForFile("\\SD0");
 
                 break;
             case 3:
@@ -61,7 +57,6 @@ int main()
                 printf("Invalid option.\n");
                 break;
             }
-            // system("clear");
             printf("\n");
             printf("[SYSTEM] - Select an option:\n");
             printf("[1] - BOOT INFO\n");
@@ -69,15 +64,6 @@ int main()
             printf("[3] - EXIT\n");
         }
 
-
-
-
-        // FAT32.PrintFileInfo(&FAT32.GetBuffer()[11 * 32]);
-
-        // FAT32.SetFileData("\\pasta1\\pasta1_1\\file2.txt");
-        // FAT32.ScanCluster("AILE1   TXT", FAT32.GetOffsetFiles(), false);
-
-        // FAT32.LookForFile("\\12345678.txt");
     }
     catch(const std::exception& e)
     {

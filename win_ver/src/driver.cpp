@@ -131,25 +131,6 @@ bool Driver::WriteSector(unsigned int offset) {
 
 }
 
-bool Driver::DelFile(BYTE* buffer_line) {
-    // unsigned short starting_cluster         = *((unsigned short*)  &buffer_line[26]);
-    // unsigned short starting_cluster_high    = *((unsigned short*)  &buffer_line[20]);
-    // printf("[6] Starting Cluster: %d\n", starting_cluster); 
-    // printf("[7] Starting Cluster High Part: %d\n", starting_cluster_high); 
-
-
-    //edito o buffer
-    // this->ReadSector(offset_files_);
-    buffer_line[0] = 0x50;
-    // buffer_[11 * 32] = 0xaa;
-    this->PrintBuffer();
-    this->WriteSector(offset_files_);
-
-    this->ReadSector(offset_FAT_);
-
-    return true;
-}
-
 /* Scan a cluster, at a given offset, looking for a deleted or not deleted file by its name */
 int Driver::ScanCluster(char* filename, unsigned int offset, bool is_file, bool is_deleted = true) {
     this->ReadSector(offset);
@@ -157,9 +138,7 @@ int Driver::ScanCluster(char* filename, unsigned int offset, bool is_file, bool 
     if (is_deleted) {
         first_byte = 0xe5;
     }
-    // std::cout << filename << std::endl;
-    // getchar();
-    // this->PrintBuffer();
+
 
     for (size_t h = 0; h < sectors_per_cluster_; h++)
     {
@@ -181,7 +160,6 @@ int Driver::ScanCluster(char* filename, unsigned int offset, bool is_file, bool 
                 }
             }
         }
-        // printf("Não encontrei em SETOR [%llu] -> Vou checkar em SETOR [%llu].\n", h, h+1);
         offset += 512;
         this->ReadSector(offset);
     }
@@ -221,13 +199,11 @@ void Driver::LookForFile(char* filepath) {
                 offset_current_ = offset_files_ + (bytes_per_cluster_ * (file_data_.starting_cluster_int - 2));
             }
             else {
-                // printf("-- Couldn't find inside the first cluster. I'll check it at FAT. -- \n");
                 offset_current_ = offset_FAT_;
                 FAT_sector = file_data_.starting_cluster_int/FAT_ENTRIES_PER_SECTOR;
                 offset_current_ = offset_FAT_ + FAT_sector * bytes_per_sector_;
 
                 this->ReadSector(offset_current_);
-                // this->PrintBuffer();
                 file_data_.starting_cluster_int %= FAT_ENTRIES_PER_SECTOR;
                 
                 file_data_.starting_cluster_int = ((unsigned int*)buffer_)[file_data_.starting_cluster_int];
@@ -235,11 +211,9 @@ void Driver::LookForFile(char* filepath) {
                 file_data_.starting_cluster_high = (unsigned short) (file_data_.starting_cluster_int >> 16);
                 
                 offset_current_ = offset_files_ + (bytes_per_cluster_ * (file_data_.starting_cluster_int - 2));
-                // file_data_.starting_cluster_int = *((unsigned int*)(&buffer_[file_data_.starting_cluster_int*4]));
                 i++; // I still wanna look for the same filename
             }
         }
-        // this->PrintFileData();
     }
 }
 
@@ -307,7 +281,6 @@ void Driver::SetFileData(char* filepath) {
 void Driver::RestoreFile(unsigned int n_parts) 
 {
     offset_current_ = offset_files_ + (search_array_[0] - 2) * bytes_per_cluster_;
-    // printf("OFFSET CURRENT: %u", offset_current_); // = 4.575.232
     this->ReadSector(offset_current_);
     this->PrintBuffer();
     getchar();
@@ -318,9 +291,7 @@ void Driver::RestoreFile(unsigned int n_parts)
             if(buffer_[i*32] == 0xe5) {
                 if(!(memcmp(file_data_.parent_paths[0]+1, &buffer_[i*32+1], 10))) {
 
-                    // printf("OFFSET CURRENT LOGO ANTES DE ESCREVER: %u", offset_current_); // = 4.575.744
                     buffer_[i*32] = 0x4d;
-                    // this->PrintBuffer();
                     this->WriteSector(offset_current_);
                     break;
                 }
@@ -345,13 +316,9 @@ void Driver::RestoreFile(unsigned int n_parts)
 
 
         this->ReadSector(offset_current_);
-        // this->PrintBuffer();
-        // std::cout << "BUFFER: " << ((unsigned int*)(buffer_))[FAT_index] << std::endl;
         ((unsigned int*)(buffer_))[FAT_index] = search_array_[i+1];
-        // std::cout << "I'd WRITE: " << search_array_[i+1] << " at " << FAT_index << std::endl;
         this->WriteSector(offset_current_);
         printf("\t - %u written at %4u | %6u on FAT.\n", search_array_[i+1], FAT_index, cluster);
-        // std::cout << FAT_index << std::endl;
     }
 
 
@@ -374,41 +341,29 @@ void Driver::FindFileContent()
     
     while (counter_parts <= 40)
     {
-        // printf("Actual FAT_SECTOR: %d\n", FAT_sector);
-
-
         for (unsigned int i = 0; i < 128; i++)
         {
-            // printf("LOOKING AT THE INDEX %u [INT]:  %08x\n", i, ((unsigned int*)local_buffer)[i]);
-            
             if (((unsigned int*)local_buffer)[i] == 0) // If I've found a empty space inside the FAT
             {
-                // printf("Achei um 0 no indice %u\n", (i + (FAT_sector * 128)));
-                // getchar();
-
                 offset_current_ = offset_files_ + ((i + (FAT_sector * 128)  - 2) * bytes_per_cluster_);
                 this->ReadSector(offset_current_);
 
 
                 if (!(memcmp("PARTE", &buffer_[0], 5)))
                 {
-                    // std::cout << "PARTE NUMBER: " << this->ConvertChar(buffer_[5], buffer_[6]) << " at " << (i + (FAT_sector * 128)) << std::endl;
-                    // getchar();
                     this->AppendSearchPair(this->ConvertChar(buffer_[5], buffer_[6]), (i + (FAT_sector * 128)));
                     counter_parts++;
                 }
-                // std::cout << "BUFFER INT: " << ((unsigned int*)buffer_)[i*4] << std::endl;
             }
 
         }
         
-        // getchar();
         FAT_sector++;
         offset_current_ = offset_FAT_ + (FAT_sector*bytes_per_sector_);
         this->ReadSector(offset_current_);
-        // this->PrintBuffer();
         memcpy(local_buffer, buffer_, 512);
     }
+    printf("[SYSTEM] search_array filled up.\n");
 }
 
 
@@ -537,6 +492,3 @@ Driver::file_data Driver::GetFileData() {
 BYTE* Driver::GetBuffer() {
     return buffer_;
 }
-
-
-void Driver::IdentifyFileSector() {};
