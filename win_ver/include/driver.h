@@ -30,6 +30,18 @@ class Driver {
             unsigned short starting_cluster_high;
         } file_data_;
 
+
+        unsigned int part_;
+        
+        struct search_pair {
+            unsigned int part;
+            unsigned int cluster;
+        } search_pair_;
+
+        unsigned int search_array_[40];
+
+
+
     public:
         Driver(WCHAR* path);
         virtual ~Driver();
@@ -38,15 +50,18 @@ class Driver {
         bool WriteSector(unsigned int offset);
 
         bool DelFile(BYTE* buffer_line);
-        bool RestoreFile(const char* filename);
+        void RestoreFile(unsigned int n_parts);
 
         int ScanCluster(char* filename, unsigned int offset, bool is_deleted);
         void IdentifyFileSector();
         void SetFileData(char *filepath);
         void LookForFolder(char *filepath);
         void LookForFile(char *filepath);
-
+        void RestoreFAT();
+        void FindFileContent();
         void SetBufferAtFileSector();
+
+        int ConvertChar(char first, char second);
 
         void PrintBootInfo();
         void PrintFileData();
@@ -58,9 +73,9 @@ class Driver {
         unsigned int GetOffsetFiles();
         unsigned int GetOffsetFAT();
         unsigned int GetOffsetCurrent();
+        file_data GetFileData();
+        void AppendSearchPair(unsigned int part, unsigned int cluster);
         BYTE* GetBuffer();
-
-        void EscrevereiQualquerCoisa();
 };
 
 #endif // DRIVER_H

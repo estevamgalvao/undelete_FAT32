@@ -334,3 +334,37 @@ void Driver::LookForFile(char* filepath) {
         std::cout << "Starting cluster: " << starting_cluster_int_ << std::endl;
     }
 }
+
+
+bool Driver::RestoreFile(const char* filename) {
+    for (size_t i = 0; i < N_LINES; i++)
+    {   
+        if(buffer_[i*32] == 0xe5) {
+            if(!(memcmp(filename+1, &buffer_[i*32+1], 10))) {
+                // printf("Achei o mesmo arquivo.\n");
+                buffer_[i*32] = 0x41;
+
+                offset_current_ = offset_files_; // Como lidar com o fato de que ele pode não estar no primeiro setor
+                this->WriteSector(offset_current_);
+
+                unsigned short starting_cluster         = *((unsigned short*)  &buffer_[i*32 + 26]);
+                // unsigned short starting_cluster_high    = *((unsigned short*)  &buffer_[i*32 + 20]);
+                // printf("[6] Starting Cluster: %d\n", starting_cluster); 
+                // printf("[7] Starting Cluster High Part: %d\n", starting_cluster_high);
+
+                offset_current_ = offset_FAT_;
+                // * starting_cluster; // Como entraria o cluster_high aqui?
+                this->ReadSector(offset_current_);
+                this->PrintBuffer();
+                buffer_[starting_cluster*4]     = (unsigned char) 0xFF;
+                buffer_[starting_cluster*4 + 1] = (unsigned char) 0xFF;
+                buffer_[starting_cluster*4 + 2] = (unsigned char) 0xFF;
+                buffer_[starting_cluster*4 + 3] = (unsigned char) 0x0F;
+                this->PrintBuffer();
+
+                this->WriteSector(offset_current_);
+            }
+        }
+    }
+    return true;
+}

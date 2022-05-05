@@ -48,6 +48,9 @@ Driver::Driver(WCHAR* path) {
     offset_FAT_          = reserved_sectors_ * bytes_per_sector_;
     bytes_per_cluster_   = bytes_per_sector_ * sectors_per_cluster_;
     }
+    printf("-- FAT32 Info loaded.\n");
+
+    part_ = 0;
 }
 
 Driver::~Driver() {
@@ -147,39 +150,6 @@ bool Driver::DelFile(BYTE* buffer_line) {
     return true;
 }
 
-bool Driver::RestoreFile(const char* filename) {
-    for (size_t i = 0; i < N_LINES; i++)
-    {   
-        if(buffer_[i*32] == 0xe5) {
-            if(!(memcmp(filename+1, &buffer_[i*32+1], 10))) {
-                // printf("Achei o mesmo arquivo.\n");
-                buffer_[i*32] = 0x41;
-
-                offset_current_ = offset_files_; // Como lidar com o fato de que ele pode não estar no primeiro setor
-                this->WriteSector(offset_current_);
-
-                unsigned short starting_cluster         = *((unsigned short*)  &buffer_[i*32 + 26]);
-                unsigned short starting_cluster_high    = *((unsigned short*)  &buffer_[i*32 + 20]);
-                // printf("[6] Starting Cluster: %d\n", starting_cluster); 
-                // printf("[7] Starting Cluster High Part: %d\n", starting_cluster_high);
-
-                offset_current_ = offset_FAT_;
-                // * starting_cluster; // Como entraria o cluster_high aqui?
-                this->ReadSector(offset_current_);
-                this->PrintBuffer();
-                buffer_[starting_cluster*4]     = (unsigned char) 0xFF;
-                buffer_[starting_cluster*4 + 1] = (unsigned char) 0xFF;
-                buffer_[starting_cluster*4 + 2] = (unsigned char) 0xFF;
-                buffer_[starting_cluster*4 + 3] = (unsigned char) 0x0F;
-                this->PrintBuffer();
-
-                this->WriteSector(offset_current_);
-            }
-        }
-    }
-    return true;
-}
-
 /* Scan a cluster, at a given offset, looking for a deleted or not deleted file by its name */
 int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = true) {
     this->ReadSector(offset);
@@ -218,7 +188,9 @@ int Driver::ScanCluster(char* filename, unsigned int offset, bool is_deleted = t
 }
 
 
-/* Look for a file by name */
+/* Look for a file by name and update the initial_cluster_(s) attributes with the result.
+*  NOTE: The value assigned to the attributes is the initial CONTENT cluster of the given file.
+*/
 void Driver::LookForFile(char* filepath) {
     this->SetFileData(filepath);
     unsigned int FAT_sector = 0;
@@ -319,6 +291,95 @@ void Driver::SetFileData(char* filepath) {
     file_data_.starting_cluster_int = 2;
 }
 
+
+void Driver::RestoreFile(unsigned int n_parts) {
+    for (unsigned int i = 0; i < n_parts; i++)
+    {
+        unsigned int part = i;
+        unsigned int cluster = search_array_[i];
+        printf("[%2u] < %u, %u >\n", i, part, cluster);
+    }
+
+
+}
+
+void Driver::FindFileContent() {
+    // entender o que é aquele FATSECTOR e ver s epreciso mudar o nome nos 2
+    //prov criar mais uma variável da FAT aqui, uma pra controlar em qual índice estou e outra pra controlar quantos setores já andei
+    char local_buffer[512];
+    /* Sector inside offset_FAT that I'm in */
+    unsigned int FAT_sector = 0;
+    int counter_parts = 1;
+    offset_current_ = offset_FAT_;
+
+    this->ReadSector(offset_current_);
+    memcpy(local_buffer, buffer_, 512);
+    
+    while (counter_parts <= 40)
+    {
+        printf("Actual FAT_SECTOR: %d\n", FAT_sector);
+
+
+        for (unsigned int i = 0; i < 128; i++)
+        {
+            printf("LOOKING AT THE INDEX %u [INT]:  %08x\n", i, ((unsigned int*)local_buffer)[i]);
+            
+            if (((unsigned int*)local_buffer)[i] == 0) // If I've found a empty space inside the FAT
+            {
+                printf("Achei um 0 no indice %u\n", (i + (FAT_sector * 128)));
+                // getchar();
+
+                offset_current_ = offset_files_ + ((i + (FAT_sector * 128)  - 2) * bytes_per_cluster_);
+                this->ReadSector(offset_current_);
+
+
+                if (!(memcmp("PARTE", &buffer_[0], 5)))
+                {
+                    std::cout << "PARTE NUMBER: " << this->ConvertChar(buffer_[5], buffer_[6]) << " at " << (i + (FAT_sector * 128)) << std::endl;
+                    // getchar();
+                    this->AppendSearchPair(this->ConvertChar(buffer_[5], buffer_[6]) - 1, (i + (FAT_sector * 128)));
+                    counter_parts++;
+                }
+                // std::cout << "BUFFER INT: " << ((unsigned int*)buffer_)[i*4] << std::endl;
+            }
+
+        }
+        // getchar();
+        FAT_sector++;
+        offset_current_ = offset_FAT_ + (FAT_sector*bytes_per_sector_);
+        this->ReadSector(offset_current_);
+        // this->PrintBuffer();
+        memcpy(local_buffer, buffer_, 512);
+    }
+
+}
+
+
+
+
+
+int Driver::ConvertChar(char first, char second) {
+    int result;
+
+    result = 10 * (first - '0');
+    result += second - '0';
+
+    return result;
+}
+
+void Driver::AppendSearchPair(unsigned int part, unsigned int cluster) {
+    search_array_[part] = cluster; 
+}
+
+
+
+
+
+
+
+
+
+
 void Driver::PrintBootInfo() {
     printf("\n[-] BOOT SECTOR INFO\n");
     printf("[1] Bytes per sector: %u\n", bytes_per_sector_);    
@@ -395,6 +456,9 @@ unsigned int Driver::GetOffsetFAT() {
 }
 unsigned int Driver::GetOffsetCurrent() {
     return offset_current_;
+}
+Driver::file_data Driver::GetFileData() {
+    return file_data_;
 }
 BYTE* Driver::GetBuffer() {
     return buffer_;

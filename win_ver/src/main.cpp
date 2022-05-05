@@ -12,19 +12,65 @@
 #include "definitions.h"
 #include "driver.h"
 
-int main(int argc, char const *argv[])
+int main()
 {
-    WCHAR* path = L"\\\\.\\Z:";
+    WCHAR* path = L"\\\\.\\P:";
 
     try
     {
         Driver FAT32(path);
-        FAT32.PrintBootInfo();
+        int choice;
+
+
+        printf("\n");
+        printf("[SYSTEM] - Select an option:\n");
+        printf("[1] - BOOT INFO\n");
+        printf("[2] - RESTORE FILE\n");
+        printf("[3] - EXIT\n");
+        
+        while (true)
+        {
+            scanf("%d", &choice);
+            getchar();
+            switch (choice)
+            {
+            case 1:
+                FAT32.PrintBootInfo();
+                break;
+            case 2:
+                printf("GIVEN FILE: \\SD0\\moai.txt\n");
+                // FAT32.LookForFile("\\SD0\\moai.txt");
+                // FAT32.AppendSearchPair(0, FAT32.GetFileData().starting_cluster_int);
+                // std::cout << ((memcmp("PARTE", "PARTE", 5))) << std::endl;
+                FAT32.FindFileContent();
+                FAT32.RestoreFile(40);
+
+                // FAT32.LookForFile("\\SD0");
+
+                break;
+            case 3:
+                return 3;
+                break;
+            default:
+                printf("Invalid option.\n");
+                break;
+            }
+            // system("clear");
+            printf("\n");
+            printf("[SYSTEM] - Select an option:\n");
+            printf("[1] - BOOT INFO\n");
+            printf("[2] - RESTORE FILE\n");
+            printf("[3] - EXIT\n");
+        }
+
+
+
+
         // FAT32.PrintFileInfo(&FAT32.GetBuffer()[11 * 32]);
 
         // FAT32.SetFileData("\\pasta1\\pasta1_1\\file2.txt");
         // FAT32.ScanCluster("AILE1   TXT", FAT32.GetOffsetFiles(), false);
-        FAT32.LookForFile("\\SD1\\aile128.txt");
+
         // FAT32.LookForFile("\\12345678.txt");
     }
     catch(const std::exception& e)

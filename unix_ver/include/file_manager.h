@@ -20,7 +20,7 @@ class FileManager {
         int GenerateFilesSD1(int count_files);
         int FillUpSD1_2(int free_space);
         int DeleteFilesRand(int count_files);
-        int SetUpFiles40KB(int count_files);
+        int SetUpFiles40KB();
 
         void GenerateFile5_txt();
 };
