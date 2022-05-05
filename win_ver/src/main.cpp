@@ -14,7 +14,7 @@
 
 int main()
 {
-    WCHAR* path = L"\\\\.\\P:";
+    WCHAR* path = L"\\\\.\\D:";
 
     try
     {
@@ -39,10 +39,16 @@ int main()
                 break;
             case 2:
                 printf("GIVEN FILE: \\SD0\\moai.txt\n");
-                // FAT32.LookForFile("\\SD0\\moai.txt");
-                // FAT32.AppendSearchPair(0, FAT32.GetFileData().starting_cluster_int);
+
+                FAT32.LookForFile("\\SD0\\moai.txt");
+                FAT32.PrintFileData();
+                FAT32.AppendSearchPair(0, FAT32.GetFileData().starting_cluster_int);
                 // std::cout << ((memcmp("PARTE", "PARTE", 5))) << std::endl;
+                getchar();
+
                 FAT32.FindFileContent();
+                FAT32.PrintSearchArray();
+                getchar();
                 FAT32.RestoreFile(40);
 
                 // FAT32.LookForFile("\\SD0");

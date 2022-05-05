@@ -11,7 +11,7 @@ FileManager::~FileManager() {}
 
 int FileManager::GenerateFolder() {
     char commands[250];
-    chdir("/mnt/p");
+    chdir(PATH);
 
     printf("[SYSTEM] - Generating folders.\n");
 
@@ -44,7 +44,7 @@ int FileManager::GenerateFiles1KB(int count_files) {
         return 1;
     }
 
-    chdir("/mnt/p");
+    chdir(PATH);
     
     char commands[250];
 
@@ -68,7 +68,7 @@ int FileManager::GenerateFiles512(int count_files) {
     }
 
     char commands[250];
-    chdir("/mnt/p");
+    chdir(PATH);
 
 
     int counter = 1;
@@ -88,7 +88,7 @@ int FileManager::GenerateFilesSD1(int count_files) {
         return 1;
     }
 
-    chdir("/mnt/p/SD1");
+    chdir(PATH"/SD1");
     
     char commands[250];
 
@@ -129,7 +129,7 @@ int FileManager::FillUpSD1_2(int free_space) {
         return 1;
     }
 
-    chdir("/mnt/p/SD1/SD1.2");
+    chdir(PATH"/SD1/SD1.2");
     char commands[250];
     int counter = 1;
 
@@ -152,7 +152,7 @@ int FileManager::DeleteFilesRand(int count_files) {
     n_dir %= 5;
 
 
-    snprintf(commands, 250, "/mnt/p/SD%d", n_dir);
+    snprintf(commands, 250, PATH"/SD%d", n_dir);
     chdir(commands);
 
 
@@ -166,7 +166,7 @@ int FileManager::DeleteFilesRand(int count_files) {
         printf("[%dº][1KB] - SD%d/file%d.txt deleted.\n", i, n_dir, n_file);
     }
 
-    chdir("/mnt/p/SD1/SD1.0");
+    chdir(PATH"/SD1/SD1.0");
     for (int i = 0; i < count_files; i++)
     {
         n_file = rand();
@@ -176,7 +176,7 @@ int FileManager::DeleteFilesRand(int count_files) {
         printf("[%dº][4KB] - SD%d/file%d.txt deleted.\n", i, n_dir, n_file);
     }
 
-    chdir("/mnt/p/SD1/SD1.1");
+    chdir(PATH"/SD1/SD1.1");
     for (int i = 0; i < count_files; i++)
     {
         n_file = rand();
@@ -196,7 +196,7 @@ int FileManager::SetUpFiles40KB() {
     }
 
     char commands[250];
-    chdir("/mnt/p/SD0");
+    chdir(PATH"/SD0");
 
     int counter = 1;
     while(counter <= 10) {
@@ -218,9 +218,9 @@ int FileManager::SetUpFiles40KB() {
     system(commands);
     printf("[40KB] - SD0/fileS3.txt deleted.\n");
 
-    // snprintf(commands, 250, "rm moai.txt");
-    // system(commands);
-    // printf("[40KB] - SD0/moai.txt deleted.\n");
+    snprintf(commands, 250, "rm moai.txt");
+    system(commands);
+    printf("[40KB] - SD0/moai.txt deleted.\n");
 
     snprintf(commands, 250, "rm fileS7.txt");
     system(commands);
@@ -235,7 +235,7 @@ void FileManager::GenerateFile5_txt() {
     char file_buffer[40961];
     char *buffer_position = file_buffer;
 
-    chdir("/mnt/p/SD0");
+    chdir(PATH"/SD0");
 
     FILE *file = fopen("moai.txt", "wb");
 

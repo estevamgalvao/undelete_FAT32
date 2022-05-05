@@ -19,5 +19,6 @@
 #define N_FOLDERS_ROOT 5
 #define N_FOLDERS_SD1 3
 #define FREE_SPACE 94073000
+#define PATH "/mnt/d"
 
 #endif //DEFINITIONS_H

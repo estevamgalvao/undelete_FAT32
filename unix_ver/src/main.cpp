@@ -27,11 +27,11 @@ int main(int, char **)
         return -1;
     }
 
-    // file_manager.GenerateFiles1KB(371);
-    // file_manager.GenerateFiles512(N_FILES_ROOT);
-    // file_manager.GenerateFilesSD1(N_FILES_ROOT);
-    // file_manager.FillUpSD1_2(FREE_SPACE);
-    // file_manager.DeleteFilesRand(50);
+    file_manager.GenerateFiles1KB(371);
+    file_manager.GenerateFiles512(N_FILES_ROOT);
+    file_manager.GenerateFilesSD1(N_FILES_ROOT);
+    file_manager.FillUpSD1_2(FREE_SPACE);
+    file_manager.DeleteFilesRand(50);
     file_manager.SetUpFiles40KB();
 
     return 0;

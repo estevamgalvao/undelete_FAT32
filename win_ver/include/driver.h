@@ -3,7 +3,7 @@
 #include "definitions.h"
 
 
-/* Classe que define o Driver */
+
 class Driver {
     private:
         unsigned int bytes_per_sector_;
@@ -38,7 +38,7 @@ class Driver {
             unsigned int cluster;
         } search_pair_;
 
-        unsigned int search_array_[40];
+        unsigned int search_array_[64];
 
 
 
@@ -52,11 +52,13 @@ class Driver {
         bool DelFile(BYTE* buffer_line);
         void RestoreFile(unsigned int n_parts);
 
-        int ScanCluster(char* filename, unsigned int offset, bool is_deleted);
+        int ScanCluster(char* filename, unsigned int offset, bool is_file, bool is_deleted);
         void IdentifyFileSector();
         void SetFileData(char *filepath);
         void LookForFolder(char *filepath);
         void LookForFile(char *filepath);
+
+
         void RestoreFAT();
         void FindFileContent();
         void SetBufferAtFileSector();
@@ -66,7 +68,7 @@ class Driver {
         void PrintBootInfo();
         void PrintFileData();
         void PrintFileInfo(BYTE* buffer_line);
-
+        void PrintSearchArray();
         void PrintBuffer();
         void PrintSector(unsigned int offset);
         
